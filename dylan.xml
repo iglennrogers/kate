@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE language SYSTEM "language.dtd"
+[
+	<!ENTITY green "#00ff00">
+	<!ENTITY grey "#808080">
+	<!ENTITY ltblue "#0086b3">
+	<!ENTITY dkblue "#445588">
+	<!ENTITY orange "#ffa500">
+		
+	<!ENTITY sp "[ \t]+" >
+	<!ENTITY maybe_sp "[ \t]*" >
+
+	<!ENTITY alpha "a-zA-Z" >
+	<!ENTITY numeric "0-9" >
+	<!ENTITY graphic "!&amp;*&lt;&gt;|^$@_&#37;" >
+	<!ENTITY special "\-+~?/=" >
+	
+	<!ENTITY punct1 "#\(|#\[|##|\?\?|\?=|\?">
+	<!ENTITY punct2 "(\.\.\.|\.|::|==|=&gt;|##|,|;|-|=)">
+	<!ENTITY punctuation "(&punct1;|&punct2;)">
+	<!ENTITY operators "(&lt;=|&gt;=|&amp;|&lt;|&gt;|~==|\+|\*|\^|==|~=|:=|-|~|-|/|=|\\|)">
+
+	<!ENTITY hashword "(?:#t|#f|#next|#rest|#key|#all-keys|#include)">
+	
+	<!ENTITY coreword "(?:define|end|handler|let|local|macro|otherwise|else)">
+	<!ENTITY beginword "(?:begin|block|case|for|if|method|select|unless|until|while|when)">
+	<!ENTITY definebodyword "(?:class|library|method|module|function)">
+	<!ENTITY definelistword "(?:constant|variable|domain|generic)">
+	<!ENTITY reservedword "(?:&coreword;|&beginword;|&definebodyword;|&definelistword;)">
+
+	<!ENTITY classadjective "(?:abstract|concrete|primary|free|sealed|open)" >
+	<!ENTITY funcadjective "(?:sealed|open|inline)" >
+	<!ENTITY varadjective "(?:thread)" >
+	<!ENTITY slotadjective "(?:inherited|constant|sealed)" >
+	<!ENTITY word "[&alpha;&numeric;&graphic;&special;]+">
+	<!ENTITY keyword "(?:&word;:|#&quot;.*&quot;)">
+]>
+<!--
+	Copyright (c) 2013 by IGR
+	Kate syntax colouring for Dylan
+	Should be placed in ~/.kde4/share/apps/katepart/syntax/
+
+	Homepage: http://kde-files.org/content/show.php?content=90660
+	-->
+<language
+    name="Dylan"
+    section="Sources"
+    version="0.1"
+    kateversion="2.4"
+    indenter="cstyle"
+    extensions="*.dylan;*.lid;*.intr"
+    mimetype="text/x-dylan"
+    author="IG Rogers [iglennrogers@gmail.com]"
+    license="LGPL"
+    priority="1"
+  >
+<highlighting>
+	<contexts>
+		<context name="start" attribute="error" lineEndContext="define_form" lineEmptyContext="define_form">
+			<RegExpr String="^&keyword;&maybe_sp;" attribute="symbol" context="headervalue" />
+			<RegExpr String="^&sp;.+$" attribute="header_value" context="#stay" />
+		</context>
+
+		<context name="headervalue" attribute="header_value" lineEndContext="#pop" lineEmptyContext="define_form" />
+
+		<context name="define_form" attribute="error" lineEndContext="#stay">
+			<RegExpr String="&sp;" attribute="normal" context="#stay" />
+			<IncludeRules context="comment"/>
+			<RegExpr String="^&maybe_sp;define&sp;" attribute="keyword" context="define_start" beginRegion="true"/>
+		</context>
+
+		<context name="normal" attribute="error" lineEndContext="#stay">
+			<RegExpr String="&sp;" attribute="normal" context="#stay" />
+			<IncludeRules context="comment"/>
+			<RegExpr String="^&maybe_sp;define&sp;" attribute="keyword" context="define_start" beginRegion="true"/>
+		</context>
+
+		<!-- string handling -->
+		<context name="string" attribute="string" lineEndContext="#stay" >
+			<DetectChar attribute="string" context="string_end" char="&quot;" />
+		</context>
+		<context name="string_end" attribute="string" lineEndContext="#stay" >
+			<DetectChar attribute="string" context="#pop" char="&quot;" />
+		</context>
+		<context name="numbers" attribute="numbers" lineEndContext="#stay" >
+			<Float attribute="numbers" context="#stay" />
+			<Int attribute="numbers" context="#stay" />
+		</context>
+		
+		<!-- comment handling -->
+		<context name="comment" attribute="comment" lineEndContext="#stay" >
+			<RegExpr String="/\*" firstNonSpace="true" attribute="comment" context="comment_end" beginRegion="true" />
+			<Detect2Chars char="/" char1="*" attribute="comment" context="comment_end" />
+			<RegExpr String="//.*$" attribute="comment" context="#stay" />
+		</context>
+		<context name="comment_end" attribute="comment" lineEndContext="#stay" >
+			<RegExpr String="\*/&maybe_sp;$" attribute="comment" context="#pop" endRegion="true" />
+			<Detect2Chars char="*" char1="/" attribute="comment" context="#pop" />
+		</context>
+		
+		<context name="define_start" lineEndContext="#stay" attribute="normal">
+			<RegExpr String="library&sp;" attribute="keyword" context="deflib"/>
+			<RegExpr String="module&sp;" attribute="keyword" context="defmod" />
+			<RegExpr String="sealed&sp;domain&sp;" attribute="keyword" context="defdom"/>
+			<RegExpr String="(&varadjective;&sp;)*(variable|constant)&sp;" attribute="keyword" context="defvar" />
+			<RegExpr String="(&classadjective;&sp;)*class&sp;" attribute="keyword" context="defcls"/>
+			<RegExpr String="generic&sp;" attribute="keyword" context="defgen" />
+			<RegExpr String="(function|method)&sp;" attribute="keyword" context="defmethod" />
+			<RegExpr String="c-function&sp;" attribute="keyword" context="defcffifunc" />
+			<RegExpr String="c-struct&sp;" attribute="keyword" context="defcls"/>
+		</context>
+		
+		<context name="defmethod" attribute="normal" lineEndContext="#stay">
+			<RegExpr String="&sp;" attribute="normal" context="#stay" />
+			<RegExpr String="^end(&sp;(method|function))?(&sp;&word;)?&maybe_sp;;" attribute="keyword" context="#pop#pop" endRegion="true"/>
+			<RegExpr String="&beginword;($|&sp;)" attribute="keyword" context="innermethod" beginRegion="true"/>
+			<RegExpr String="&coreword;(&sp;|$)" attribute="keyword" context="#stay" />
+			<IncludeRules context="constants"/>
+			<IncludeRules context="type"/>
+			<IncludeRules context="punctuation"/>
+			<IncludeRules context="operators"/>
+			<IncludeRules context="symbol"/>
+			<IncludeRules context="string"/>
+			<IncludeRules context="numbers"/>
+			<IncludeRules context="base_inc"/>
+		</context>
+
+		<context name="innermethod" attribute="normal" lineEndContext="#stay">
+			<RegExpr String="&sp;" attribute="normal" context="#stay" />
+			<RegExpr String="&beginword;($|&sp;)" attribute="keyword" context="innermethod" beginRegion="true"/>
+			<RegExpr String="end(&sp;&beginword;)?&maybe_sp;(\)|,|;|$)" attribute="keyword" context="#pop" endRegion="true"/>
+			<RegExpr String="&coreword;&sp;" attribute="keyword" context="#stay" />
+			<IncludeRules context="constants"/>
+			<IncludeRules context="type"/>
+			<IncludeRules context="punctuation"/>
+			<IncludeRules context="operators"/>
+			<IncludeRules context="symbol"/>
+			<IncludeRules context="string"/>
+			<IncludeRules context="numbers"/>
+			<IncludeRules context="base_inc"/>
+		</context>
+
+		<context name="defcffifunc" attribute="normal" lineEndContext="#stay">
+			<RegExpr String="&sp;" attribute="normal" context="#stay" />
+			<RegExpr String="(parameter|result)&sp;" attribute="keyword" context="#stay"/>
+			<RegExpr String="^end(&sp;c-function)?(&sp;&word;)?&maybe_sp;;" attribute="keyword" context="#pop#pop" endRegion="true"/>
+			<IncludeRules context="punctuation"/>
+			<IncludeRules context="type"/>
+			<IncludeRules context="symbol"/>
+			<IncludeRules context="string"/>
+			<IncludeRules context="base_inc"/>
+		</context>
+		
+		<context name="defgen" attribute="normal" lineEndContext="#stay">
+			<RegExpr String=";" attribute="normal" context="#pop#pop" endRegion="true"/>
+			<IncludeRules context="punctuation"/>
+			<IncludeRules context="type"/>
+			<IncludeRules context="symbol"/>
+			<IncludeRules context="base_inc"/>
+		</context>
+		
+		<context name="defvar" attribute="normal" lineEndContext="#stay">
+			<RegExpr String=";" attribute="normal" context="#pop#pop" endRegion="true"/>
+			<RegExpr String="(&varadjective;&sp;)*slot&sp;" attribute="keyword" context="#stay"/>
+			<IncludeRules context="constants"/>
+			<IncludeRules context="type"/>
+			<IncludeRules context="symbol"/>
+			<IncludeRules context="punctuation"/>
+			<IncludeRules context="operators"/>
+			<IncludeRules context="string"/>
+			<IncludeRules context="numbers"/>
+			<IncludeRules context="base_inc"/>
+		</context>
+		
+		<context name="defcls" attribute="normal" lineEndContext="#stay">
+			<RegExpr String="&sp;" attribute="normal" context="#stay" />
+			<RegExpr String="(&slotadjective;&sp;)*slot&sp;" attribute="keyword" context="#stay"/>
+			<RegExpr String="^end(&sp;(class|c-struct))?(&sp;&word;)?&maybe_sp;;" attribute="keyword" context="#pop#pop" endRegion="true"/>
+			<IncludeRules context="type"/>
+			<IncludeRules context="symbol"/>
+			<IncludeRules context="punctuation"/>
+			<IncludeRules context="operators"/>
+			<IncludeRules context="constants"/>
+			<IncludeRules context="string"/>
+			<IncludeRules context="numbers"/>
+			<IncludeRules context="base_inc"/>
+		</context>
+		
+		<context name="deflib" attribute="normal" lineEndContext="#stay">
+			<RegExpr String="&sp;" attribute="normal" context="#stay" />
+			<RegExpr String="(use|export)&sp;" attribute="keyword" context="#stay"/>
+			<RegExpr String="&keyword;" attribute="symbol" context="#stay"/>
+			<RegExpr String="^end(&sp;library)?(&sp;&word;)?&maybe_sp;;" attribute="keyword" context="#pop#pop" endRegion="true"/>
+			<IncludeRules context="base_inc"/>
+		</context>
+			
+		<context name="defmod" attribute="normal" lineEndContext="#stay">
+			<RegExpr String="&sp;" attribute="normal" context="#stay" />
+			<RegExpr String="(use|export|create)&sp;" attribute="keyword" context="#stay"/>
+			<RegExpr String="&keyword;" attribute="symbol" context="#stay"/>
+			<RegExpr String="^end(&sp;library)?(&sp;&word;)?&maybe_sp;;" attribute="keyword" context="#pop#pop" endRegion="true"/>
+			<IncludeRules context="base_inc"/>
+		</context>
+			
+		<context name="defdom" attribute="normal" lineEndContext="#stay">
+			<RegExpr String=";" attribute="normal" context="#pop#pop" endRegion="true"/>
+			<IncludeRules context="type"/>
+			<IncludeRules context="base_inc"/>
+		</context>
+			
+		<context name="base_inc" attribute="normal" lineEndContext="#stay" >
+			<IncludeRules context="brackets"/>
+			<IncludeRules context="comment"/>
+			<IncludeRules context="identifier"/>
+		</context>
+		<context name="brackets" attribute="brackets" lineEndContext="#stay" >
+			<AnyChar String="(){}[]" attribute="brackets" context="#stay" />
+		</context>
+		<context name="type" attribute="normal" lineEndContext="#stay" >
+			<RegExpr String="&lt;&word;&gt;" attribute="type" context="#stay"/>
+		</context>
+		<context name="symbol" attribute="normal" lineEndContext="#stay" >
+			<RegExpr String="&keyword;&maybe_sp;" attribute="symbol" context="#stay"/>
+			<RegExpr String="&hashword;&maybe_sp;" attribute="symbol" context="#stay"/>
+		</context>
+		<context name="operators" attribute="operators" lineEndContext="#stay" >
+			<RegExpr String="&operators;&sp;" attribute="operators" context="#stay"/>
+		</context>
+		<context name="punctuation" attribute="punctuation" lineEndContext="#stay" >
+			<RegExpr String="&maybe_sp;&punctuation;&sp;" attribute="punctuation" context="#stay"/>
+		</context>
+		<context name="identifier" attribute="identifier" lineEndContext="#stay" >
+			<RegExpr String="&word;" attribute="identifier" context="#stay"/>
+		</context>
+		<context name="constants" attribute="normal" lineEndContext="#stay" >
+			<RegExpr String="\$&word;&maybe_sp;" attribute="constants" context="#stay"/>
+			<RegExpr String="\*&word;\*&maybe_sp;" attribute="constants" context="#stay"/>
+		</context>
+	</contexts>
+
+	<itemDatas>
+		<!-- the source records at the top -->
+		<itemData name="symbol" color="&ltblue;" defStyleNum="dsNormal" />
+		<itemData name="header_value" color="#ff4040" defStyleNum="dsNormal" />
+		<!-- miscellaneous -->
+		<itemData name="comment" defStyleNum="dsComment" />
+		<itemData name="string" defStyleNum="dsString" />
+		<itemData name="numbers" defStyleNum="dsString" />
+		
+		<itemData name="brackets" color="&orange;" defStyleNum="dsNormal" />
+		<itemData name="constants" color="&dkblue;" defStyleNum="dsNormal" />
+		<itemData name="punctuation" defStyleNum="dsKeyword" />
+		<itemData name="operators" defStyleNum="dsKeyword" />
+		<itemData name="normal" defStyleNum="dsNormal" />
+		<itemData name="keyword" defStyleNum="dsKeyword" />
+		<itemData name="type" defStyleNum="dsDataType" />
+		<itemData name="identifier" underline="true" defStyleNum="dsNormal" />
+		<itemData name="error" defStyleNum="dsAlert" />
+	</itemDatas>
+</highlighting>
+
+<general>
+  <comments>
+    <comment name="singleLine" start="//" />
+    <comment name="multiLine" start="/*" end="*/" />
+  </comments>
+	<keywords casesensitive="0" />
+</general>
+
+</language>
+<!-- kate: indent-width 4; tab-width 4; -->
