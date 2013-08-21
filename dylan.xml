@@ -47,7 +47,7 @@
 <language
     name="Dylan"
     section="Sources"
-    version="0.1"
+    version="0.2"
     kateversion="2.4"
     indenter="cstyle"
     extensions="*.dylan;*.lid;*.intr"
@@ -66,23 +66,24 @@
 		<context name="headervalue" attribute="header_value" lineEndContext="#pop" lineEmptyContext="define_form" />
 
 		<context name="define_form" attribute="error" lineEndContext="#stay">
-<!-- 			<RegExpr String="&sp;" attribute="normal" context="#stay" /> -->
 			<IncludeRules context="comment"/>
-			<RegExpr String="^&maybe_sp;define&sp;" attribute="keyword" context="define_start" beginRegion="true"/>
-			<RegExpr String="^&maybe_sp;main&maybe_sp;(" attribute="normal" context="innermethod" beginRegion="true"/>
+			<RegExpr String="^define&sp;" attribute="keyword" context="define_start" beginRegion="true"/>
+			<RegExpr String="^main&maybe_sp;(" attribute="normal" context="mainmethod" beginRegion="true"/>
 		</context>
 
 		<context name="normal" attribute="error" lineEndContext="#stay">
 			<RegExpr String="&sp;" attribute="normal" context="#stay" />
 			<IncludeRules context="comment"/>
-			<RegExpr String="^&maybe_sp;define&sp;" attribute="keyword" context="define_start" beginRegion="true"/>
+			<RegExpr String="^define&sp;" attribute="keyword" context="define_start" beginRegion="true"/>
 		</context>
 
-		<!-- string handling -->
+		<!-- string & number handling -->
 		<context name="string" attribute="string" lineEndContext="#stay" >
+			<HlCChar attribute="string" context="#stay" />
 			<DetectChar attribute="string" context="string_end" char="&quot;" />
 		</context>
 		<context name="string_end" attribute="string" lineEndContext="#stay" >
+			<HlCStringChar attribute="string" context="#stay" />
 			<DetectChar attribute="string" context="#pop" char="&quot;" />
 		</context>
 		<context name="numbers" attribute="numbers" lineEndContext="#stay" >
@@ -119,7 +120,7 @@
 			<RegExpr String="interface&maybe_sp;" attribute="keyword" context="definterface" />
 		</context>
 		
-		<context name="definterface" attribute="normal" liineEndContext="#stay">
+		<context name="definterface" attribute="normal" lineEndContext="#stay">
 			<RegExpr String="end(&sp;interface)?&maybe_sp;;" attribute="keyword" context="#pop" endRegion="true"/>
 			<IncludeRules context="symbol"/>
 			<IncludeRules context="string"/>
@@ -128,46 +129,19 @@
 			<IncludeRules context="base_inc"/>
 		</context>
 		
-		<context name="defmacro" attribute="normal" liineEndContext="#stay">
-			<RegExpr String="^&maybe_sp;define&sp;" attribute="keyword" context="frag_start" beginRegion="true"/>
-			<RegExpr String="&maybe_sp;=&gt;&maybe_sp;" attribute="keyword" context="frag_end" />
-			<IncludeRules context="punctuation"/>
-			<IncludeRules context="base_inc"/>
-		</context>
-		
-		<context name="frag_start" lineEndContext="#stay" attribute="normal">
-			<RegExpr String="end(&sp;define)?(&sp;&word;)?&maybe_sp;;" attribute="keyword" context="#pop" endRegion="true"/>
+		<context name="defmacro" attribute="normal" lineEndContext="#stay">
+			<RegExpr String="^end(&sp;macro)?(&sp;&word;)?&maybe_sp;;" attribute="keyword" context="#pop" endRegion="true"/>
+			<RegExpr String="&beginword;($|&sp;)" attribute="keyword" context="#stay"/>
+			<RegExpr String="&coreword;&sp;" attribute="keyword" context="#stay" />
 			<IncludeRules context="symbol"/>
 			<IncludeRules context="string"/>
 			<IncludeRules context="punctuation"/>
-			<IncludeRules context="base_inc"/>
-		</context>
-		
-		<context name="frag_end" lineEndContext="#stay" attribute="normal">
-			<RegExpr String="end(&sp;macro)?(&sp;&word;)?&maybe_sp;;" attribute="keyword" context="#pop#pop#pop" endRegion="true"/>
-			<RegExpr String="^&maybe_sp;define&sp;" attribute="keyword" context="define_start" beginRegion="true"/>
 			<IncludeRules context="base_inc"/>
 		</context>
 		
 		<context name="defmethod" attribute="normal" lineEndContext="#stay">
-			<RegExpr String="&sp;" attribute="normal" context="#stay" />
-			<RegExpr String="end(&sp;(method|function))?(&sp;&word;)?&maybe_sp;;" attribute="keyword" context="#pop#pop" endRegion="true"/>
-			<RegExpr String="&beginword;($|&sp;)" attribute="keyword" context="innermethod" beginRegion="true"/>
-			<RegExpr String="&coreword;(&sp;|$)" attribute="keyword" context="#stay" />
-			<IncludeRules context="constants"/>
-			<IncludeRules context="type"/>
-			<IncludeRules context="punctuation"/>
-			<IncludeRules context="operators"/>
-			<IncludeRules context="symbol"/>
-			<IncludeRules context="string"/>
-			<IncludeRules context="numbers"/>
-			<IncludeRules context="base_inc"/>
-		</context>
-
-		<context name="innermethod" attribute="normal" lineEndContext="#stay">
-			<RegExpr String="&sp;" attribute="normal" context="#stay" />
-			<RegExpr String="&beginword;($|&sp;)" attribute="keyword" context="innermethod" beginRegion="true"/>
-			<RegExpr String="end(&sp;&beginword;)?&maybe_sp;(\)|,|}|;|$)" attribute="keyword" context="#pop" endRegion="true"/>
+			<RegExpr String="^end(&sp;(method|function))?(&sp;&word;)?&maybe_sp;;" attribute="keyword" context="#pop#pop" endRegion="true"/>
+			<RegExpr String="&beginword;($|&sp;)" attribute="keyword" context="#stay"/>
 			<RegExpr String="&coreword;&sp;" attribute="keyword" context="#stay" />
 			<IncludeRules context="constants"/>
 			<IncludeRules context="type"/>
@@ -265,6 +239,20 @@
 			<IncludeRules context="base_inc"/>
 		</context>
 			
+		<context name="mainmethod" attribute="normal" lineEndContext="#stay">
+			<RegExpr String="^end(&sp;(method|function))?(&sp;&word;)?&maybe_sp;;" attribute="keyword" context="#pop" endRegion="true"/>
+			<RegExpr String="&beginword;($|&sp;)" attribute="keyword" context="#stay"/>
+			<RegExpr String="&coreword;&sp;" attribute="keyword" context="#stay" />
+			<IncludeRules context="constants"/>
+			<IncludeRules context="type"/>
+			<IncludeRules context="punctuation"/>
+			<IncludeRules context="operators"/>
+			<IncludeRules context="symbol"/>
+			<IncludeRules context="string"/>
+			<IncludeRules context="numbers"/>
+			<IncludeRules context="base_inc"/>
+		</context>
+
 		<context name="base_inc" attribute="normal" lineEndContext="#stay" >
 			<IncludeRules context="brackets"/>
 			<IncludeRules context="comment"/>
@@ -321,7 +309,7 @@
     <comment name="singleLine" start="//" />
     <comment name="multiLine" start="/*" end="*/" />
   </comments>
-	<keywords casesensitive="0" />
+  <keywords casesensitive="0" />
 </general>
 
 </language>
