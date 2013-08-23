@@ -58,12 +58,11 @@
   >
 <highlighting>
 	<contexts>
-		<context name="start" attribute="error" lineEndContext="define_form" lineEmptyContext="define_form">
-			<RegExpr String="^&keyword;&maybe_sp;" attribute="symbol" context="headervalue" />
+		<context name="start" attribute="error" lineEndContext="#stay" lineEmptyContext="define_form">
+			<RegExpr String="^&keyword;&maybe_sp;" attribute="symbol" context="#stay" />
 			<RegExpr String="^&sp;.+$" attribute="header_value" context="#stay" />
+			<RegExpr String=".+$" attribute="header_value" context="#stay" />
 		</context>
-
-		<context name="headervalue" attribute="header_value" lineEndContext="#pop" lineEmptyContext="define_form" />
 
 		<context name="define_form" attribute="error" lineEndContext="#stay">
 			<IncludeRules context="comment"/>
@@ -118,6 +117,7 @@
 			<RegExpr String="(c|C)-pointer-type&sp;" attribute="keyword" context="defcffiptr"/>
 			<!-- For the cffi interface -->
 			<RegExpr String="interface&maybe_sp;" attribute="keyword" context="definterface" />
+			<RegExpr String=".+" attribute="normal" context="mainmethod" beginRegion="true"/>
 		</context>
 		
 		<context name="definterface" attribute="normal" lineEndContext="#stay">
@@ -141,8 +141,8 @@
 		
 		<context name="defmethod" attribute="normal" lineEndContext="#stay">
 			<RegExpr String="^end(&sp;(method|function))?(&sp;&word;)?&maybe_sp;;" attribute="keyword" context="#pop#pop" endRegion="true"/>
-			<RegExpr String="&beginword;($|&sp;)" attribute="keyword" context="#stay"/>
-			<RegExpr String="&coreword;&sp;" attribute="keyword" context="#stay" />
+			<RegExpr String="&beginword;($|&sp;|;)" attribute="keyword" context="#stay"/>
+			<RegExpr String="&coreword;($|&sp;|;)" attribute="keyword" context="#stay" />
 			<IncludeRules context="constants"/>
 			<IncludeRules context="type"/>
 			<IncludeRules context="punctuation"/>
@@ -235,14 +235,16 @@
 			<RegExpr String="&sp;" attribute="normal" context="#stay" />
 			<RegExpr String="(use|export|create)(&sp;|$)" attribute="keyword" context="#stay"/>
 			<RegExpr String="&keyword;" attribute="symbol" context="#stay"/>
-			<RegExpr String="end(&sp;library)?(&sp;&word;)?&maybe_sp;;" attribute="keyword" context="#pop#pop" endRegion="true"/>
+			<RegExpr String="end(&sp;module)?(&sp;&word;)?&maybe_sp;;" attribute="keyword" 
+context="#pop#pop" endRegion="true"/>
+			<IncludeRules context="punctuation"/>
 			<IncludeRules context="base_inc"/>
 		</context>
 			
 		<context name="mainmethod" attribute="normal" lineEndContext="#stay">
 			<RegExpr String="^end(&sp;(method|function))?(&sp;&word;)?&maybe_sp;;" attribute="keyword" context="#pop" endRegion="true"/>
-			<RegExpr String="&beginword;($|&sp;)" attribute="keyword" context="#stay"/>
-			<RegExpr String="&coreword;&sp;" attribute="keyword" context="#stay" />
+			<RegExpr String="&beginword;($|&sp;|;)" attribute="keyword" context="#stay"/>
+			<RegExpr String="&coreword;($|&sp;|;)" attribute="keyword" context="#stay" />
 			<IncludeRules context="constants"/>
 			<IncludeRules context="type"/>
 			<IncludeRules context="punctuation"/>
